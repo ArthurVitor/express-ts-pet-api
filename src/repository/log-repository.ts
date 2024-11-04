@@ -1,20 +1,12 @@
-import { dbContext } from "../db/mongo-connection";
+import { Log } from "../interfaces/log.i";
+import { GenericRepository } from "./generic-repository";
 
-export async function logRequest(requestUrl: string, requestMethod: string, time?: Date) {
-    try {
-        const db = await dbContext();
-        const logCollection = db.collection("log_cl");
+const LOG_COLLECTION: string = "log_cl";
 
-        logCollection.insertOne(
-            {
-                requestUrl: requestUrl,
-                requestMethod: requestMethod,
-                time: time
-            }
-        )
-
-        return;
-    } catch (error) {
-        return;
+class LogRepository extends GenericRepository<Log> {
+    constructor() {
+        super(LOG_COLLECTION);
     }
 }
+
+export { LogRepository }

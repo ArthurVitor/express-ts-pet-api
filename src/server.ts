@@ -1,8 +1,8 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import pet_router from "./routes/pet-router";
-import { logginMiddleware } from "./middleware/log.m";
-import errorHandler from "./middleware/errorHandler.m";
+import { logginMiddleware } from "./middleware/log.md";
+import errorHandler from "./middleware/errorHandler.md";
 
 dotenv.config();
 

@@ -9,6 +9,13 @@ class GenericRepository<T extends Document> {
         this.collectionName = collectionName;
     }
 
+    async getAll(): Promise<Array<WithId<T>>> {
+        const collection: Collection<T> = await getCollection<T>(this.collectionName);
+        const itens = await collection.find().toArray();
+
+        return itens;
+    }
+
     async getById(_id: ObjectId): Promise<WithId<T>> {
         const collection: Collection<T> = await getCollection<T>(this.collectionName);
         const item = await collection.findOne({ _id: _id } as unknown as Filter<T>);
@@ -25,6 +32,11 @@ class GenericRepository<T extends Document> {
         const result = await collection.insertOne(document);
         
         return await this.getById(result.insertedId); 
+    }
+
+    async deleteById(_id: ObjectId ): Promise<void> {
+        const collection: Collection<T> = await getCollection(this.collectionName);
+        collection.deleteOne({_id: _id } as unknown as Filter<T>);
     }
 
 }

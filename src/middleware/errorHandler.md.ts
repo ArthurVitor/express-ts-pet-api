@@ -5,7 +5,7 @@ function errorHandler(err: Error, req: Request, res: Response, next: NextFunctio
     if (err instanceof NotFoundException) {
         res.status(404).json({ error: err.message });
     } else {
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: err.message });
     }
 }
 

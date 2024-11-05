@@ -3,7 +3,6 @@ import express from 'express';
 import { PetRepository } from '../repository/pet-repository';
 import Pet from '../interfaces/pet.i';
 import { ObjectId } from 'mongodb';
-import { send } from 'process';
 
 const pet_router = express.Router();
 pet_router.use(express.json());

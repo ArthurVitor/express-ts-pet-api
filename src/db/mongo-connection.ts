@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion, Db } from "mongodb";
+import { MongoClient, ServerApiVersion, Db, Collection, Document } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,19 +13,21 @@ const client = new MongoClient(uri, {
   }
 });
 
-let db: Db;
+
 
 async function connectToDatabase(): Promise<Db> {
-  if (!db) { 
-    await client.connect();
-    db = client.db("pet_express_db"); 
-  }
+  let db: Db;
+  await client.connect();
+  db = client.db("pet_express_db"); 
+  
   return db;
 }
 
-async function disconnect() {
-  await client.close();
-  db = client.db(""); 
+async function getCollection<T extends Document>(collectionName: string): Promise<Collection<T>> {
+  const db = await connectToDatabase();
+
+  return db.collection<T>(collectionName);
 }
 
-export { connectToDatabase as dbContext, disconnect };
+
+export { getCollection };

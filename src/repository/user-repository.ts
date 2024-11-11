@@ -16,10 +16,6 @@ class UserRepository extends GenericRepository<User> {
 
         return user;
     }
-
-    async exists(email: string): Promise<User | null> {
-        return await this.findByEmail(email);
-    }
 }
 
 export { UserRepository }

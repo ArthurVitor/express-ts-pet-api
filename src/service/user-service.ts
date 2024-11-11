@@ -23,10 +23,14 @@ class UserService {
         
     }
 
-    async register(registerUser: User): Promise<User> {
-        if (await this.userRepository.exists(registerUser.email)) {
+    async userExists(user: User): Promise<void> {
+        if (await this.userRepository.findByEmail(user.email)) {
             throw new EmailAlreadyRegisteredException("This email is already being used");
         }
+    }
+
+    async register(registerUser: User): Promise<User> {
+        this.userExists(registerUser);
 
         registerUser.password = await hashPassword(registerUser.password);
 
@@ -34,15 +38,11 @@ class UserService {
     }
 
     async login(userLogin: User): Promise<string> {
-        const user: User | null = await this.userRepository.exists(userLogin.email);
-
-        if (!user) {
-            throw new UserNotFoundException(`Couldn't find user with email ${userLogin.email}`)
-        }
+        const user: User | null = await this.userRepository.findByEmail(userLogin.email);
         
         await this.validateUserCredentials(userLogin, user);
 
-        return generateToken(user._id.toString());
+        return generateToken(user!._id.toString());
     }
 }
 

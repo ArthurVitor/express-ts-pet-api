@@ -30,7 +30,7 @@ class UserService {
     }
 
     async register(registerUser: User): Promise<User> {
-        this.userExists(registerUser);
+        await this.userExists(registerUser);
 
         registerUser.password = await hashPassword(registerUser.password);
 

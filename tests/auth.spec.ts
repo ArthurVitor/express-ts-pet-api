@@ -2,20 +2,41 @@ import { ObjectId } from 'mongodb';
 import { User } from '../src/interfaces/user.i';
 import { UserService } from '../src/service/user-service';
 import { EmailAlreadyRegisteredException } from '../src/exceptions/EmailAlreadyRegisteredException';
+import { UserRepository } from '../src/repository/user-repository';
+import { comparePassword } from '../src/utils/passwordUtils';
 import { InvalidCredentialException } from '../src/exceptions/InvalidCredentialException';
 import { UserNotFoundException } from '../src/exceptions/UserNotFoundException';
+import { generateToken } from '../src/utils/generateJwt';
 
-const userService = new UserService();
+jest.mock('../src/repository/user-repository')
+jest.mock('../src/utils/passwordUtils');
+jest.mock('../src/utils/generateJwt');
 
 describe("User Register", () => {
-    test("Successfully registers a user", async () => {
+    let userService: UserService;
+    let userRepositoryMock: jest.Mocked<UserRepository>;
+    
+    beforeEach(() => {
+        userRepositoryMock = new UserRepository() as jest.Mocked<UserRepository>;
+        userService = new UserService(userRepositoryMock);
+    })
+
+    it("Successfully registers a user", async () => {
+        const mockUser: User = {
+            _id: new ObjectId(),
+            username: "Arthur",
+            email: "arthuremail@gmail.com",
+            password: "encryptedPass",
+        };
+        userRepositoryMock.insertOne.mockResolvedValue(mockUser);
+
+
         const userRegister: User = {
             _id: new ObjectId(),
             username: "Arthur",
             email: "arthuremail@gmail.com",
             password: "password",
         };
-    
         const result = await userService.register(userRegister);
     
         expect(result).toMatchObject({
@@ -26,20 +47,31 @@ describe("User Register", () => {
         });
     });
     
-    test("Throws EmailAlreadyRegisteredException when email is already registered", async () => {
+    it('Throws EmailAlreadyRegisteredException when email is already registered', async () => {
         const userRegister: User = {
             _id: new ObjectId(),
-            username: "Arthur",
-            email: "arthuremail@gmail.com",
-            password: "password",
+            username: 'Arthur',
+            email: 'arthuremail@gmail.com',
+            password: 'password',
         };
+    
+        userRepositoryMock.findByEmail.mockResolvedValue(userRegister);
     
         await expect(userService.register(userRegister)).rejects.toThrow(EmailAlreadyRegisteredException);
     });
+    
 })
 
 describe("User Login", () => {
-    test("Succesfully login", async () => {
+    let userService: UserService;
+    let userRepositoryMock: jest.Mocked<UserRepository>;
+
+    beforeEach(() => {
+        userRepositoryMock = new UserRepository() as jest.Mocked<UserRepository>;
+        userService = new UserService(userRepositoryMock);
+    });
+
+    test("Successfully login", async () => {
         const userLogin: User = {
             _id: new ObjectId(),
             username: "Arthur",
@@ -47,10 +79,23 @@ describe("User Login", () => {
             password: "password",
         };
 
+        const mockUser: User = {
+            _id: new ObjectId(),
+            username: "Arthur",
+            email: "arthuremail@gmail.com",
+            password: "encryptedPassword",
+        };
+
+        userRepositoryMock.findByEmail.mockResolvedValue(mockUser);
+
+        (comparePassword as jest.Mock).mockResolvedValue(true);
+
+        (generateToken as jest.Mock).mockReturnValue("mockToken");
+
         const result = await userService.login(userLogin);
 
-        await expect(result).toEqual(expect.any(String));
-    })
+        expect(result).toEqual("mockToken");
+    });
 
     test("Throw InvalidCredentialException when inserting an invalid password", async () => {
         const invalidUserLogin: User = {
@@ -59,18 +104,31 @@ describe("User Login", () => {
             email: "arthuremail@gmail.com",
             password: "invalidPassword",
         };
-    
-        await expect(userService.login(invalidUserLogin)).rejects.toThrow(InvalidCredentialException);
-    })
 
-    test("Throw UserNotFound Exception when inserting an invalid email", async () => {
+        const mockUser: User = {
+            _id: new ObjectId(),
+            username: "Arthur",
+            email: "arthuremail@gmail.com",
+            password: "encryptedPassword",
+        };
+
+        userRepositoryMock.findByEmail.mockResolvedValue(mockUser);
+
+        (comparePassword as jest.Mock).mockResolvedValue(false);
+
+        await expect(userService.login(invalidUserLogin)).rejects.toThrow(InvalidCredentialException);
+    });
+
+    test("Throw UserNotFoundException when inserting an invalid email", async () => {
         const invalidUserLogin: User = {
             _id: new ObjectId(),
             username: "Arthur",
             email: "invalidarthuremail@gmail.com",
             password: "password",
         };
-    
+
+        userRepositoryMock.findByEmail.mockResolvedValue(null);
+
         await expect(userService.login(invalidUserLogin)).rejects.toThrow(UserNotFoundException);
-    })
-})
+    });
+});

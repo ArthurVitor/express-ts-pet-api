@@ -7,9 +7,10 @@ import { generateToken } from "../utils/generateJwt";
 import { comparePassword, hashPassword } from "../utils/passwordUtils";
 
 class UserService {
-    private readonly userRepository: UserRepository = new UserRepository();
-    
-    constructor() {
+    private readonly userRepository: UserRepository;
+
+    constructor(userRepository: UserRepository = new UserRepository()) {
+        this.userRepository = userRepository;
     }
 
     async validateUserCredentials(userLogin: User, user: User | null): Promise<void> {
@@ -30,7 +31,7 @@ class UserService {
     }
 
     async register(registerUser: User): Promise<User> {
-        this.userExists(registerUser);
+        await this.userExists(registerUser);    
 
         registerUser.password = await hashPassword(registerUser.password);
 

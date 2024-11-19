@@ -12,7 +12,7 @@ jest.mock('../src/repository/user-repository')
 jest.mock('../src/utils/passwordUtils');
 jest.mock('../src/utils/generateJwt');
 
-describe("Auth.ts", () => {
+describe("user-service.ts", () => {
     let userService: UserService;
     let userRepositoryMock: jest.Mocked<UserRepository>;
 
